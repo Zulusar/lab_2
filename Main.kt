@@ -17,16 +17,7 @@ fun main() {
     var iter = 0//счетчик для определения нужного символа
     var currentIndex = 0//счетчик хода
     val boardSize = 4//ограничения по вводу
-    var result = 1//счетчик победы
-    val Game: MutableList<Array<Array<Char>>> = mutableListOf(
-        arrayOf(
-            arrayOf(' ', ' ', ' '),
-            arrayOf(' ', ' ', ' '),
-            arrayOf(' ', ' ', ' ')
-        )
-    )//промежуточное поле
-    var game = Array(1, { mutableListOf<Array<Array<Char>>>() })//массив сбора полей
-    var Field1: Array<Array<Char>>//копия поля
+    val game = mutableListOf<Array<Array<Char>>>() //массив сбора полей
     var Coordinates: String//координаты
 
     fun printBoard(board: Array<Array<Char>>) {//вывод игры
@@ -44,22 +35,16 @@ fun main() {
         else true
     }
 
-    fun pointFromString(string: String): Array<Int> {//преобразования строки в массив чисел
-        val Coor = string.split(" ").map(String::toInt)//разбеление через _
-        val Coor1 = arrayOf(Coor[0], Coor[1])
-        return Coor1
-    }
-
-    fun read(string: String): Pair<Int, Int> {// то же самое, но преобразование в Pair
+    fun pointFromString(string: String): Pair<Int, Int> {// то же самое, но преобразование в Pair
         val Coor = string.split(" ").map(String::toInt)
         val Coor1 = Pair(Coor[0], Coor[1])
         return Coor1
     }
 
-    fun Array<Array<Char>>.isRightMove(point: Array<Int>): Boolean {//проверка на правльность введенных координат
-        if (point[0] == 3 && point[1] >= 0) return true//команда на возврат хода
-        if (point[0] > boardSize || point[1] > boardSize || this[point[0]][point[1]] != ' ') return false//команда на ввод координат
-        else return true
+    fun Array<Array<Char>>.isRightMove(point: Pair<Int, Int>): Boolean {//проверка на правльность введенных координат
+        if (point.first == 3 && point.second >= 0) return true//команда на возврат хода
+        return if (point.first > boardSize || point.second > boardSize || this[point.first][point.second] != ' ') false//команда на ввод координат
+        else true
     }
 
     fun Array<Array<Char>>.get(point: Pair<Int, Int>): Char {//замена пробела на нужный символ
@@ -81,12 +66,6 @@ fun main() {
             clone[i] = z[i].clone()
         }
         return clone
-    }
-
-    fun Array<MutableList<Array<Array<Char>>>>.printCopy(x: Int): Array<Array<Char>> {//вывод копии
-        val i = 0//вспомогательный индекс
-        val needField = this[i][x]//присваивание новому массиву значения
-        return needField
     }
 
     fun Array<Array<Char>>.checkWin(): Char {//проверка на выигрыш
@@ -126,36 +105,28 @@ fun main() {
             Coordinates = readLine().toString()//считывание координат
             pointFromString(Coordinates)//их проверка
         } while (Field.isRightMove(pointFromString(Coordinates)) == false)
-        if (pointFromString(Coordinates)[0] != 3) {//если не команда, то сделать ход
-            println("Ход $currentIndex")
+        if (pointFromString(Coordinates).first != 3) {//если не команда, то сделать ход
+            game.add(Copy(Field))//добавление массива в массив
             iter++
-            Field.get(read(Coordinates))
-            Field.set(read(Coordinates))
-            Field1 = Copy(Field)//копирование поля
-            Game[0] = Field1//запись в массив
-            game[currentIndex].add(Game[0])//добавление массива в массив
-            game = Array(game.size + 1) { game[currentIndex] } //увеличение размера массива
-//            println("Ход №$currentIndex")
+            Field.get(pointFromString(Coordinates))
+            Field.set(pointFromString(Coordinates))
             currentIndex++//увеличение хода
             Field.checkWin()//проврека на победу
         } else {//если команда
-            currentIndex = pointFromString(Coordinates)[1]
-            println("Ход $currentIndex")
-            Field = game.printCopy(pointFromString(Coordinates)[1]) //переприсвоение значения полю
-            //переприсвоение счетчика хода
+            currentIndex -= pointFromString(Coordinates).first
+            Field = game[currentIndex] //переприсвоение значения пол
             printBoard(Field)
-            currentIndex++
-//            println("Ход $currentIndex")
-            if (iter % 2 == 0) iter == 1
-            else iter == 0
+            iter = if (iter % 2 == 0) currentIndex
+            else {
+                currentIndex + 1
+            }
         }
-        if (Field.isFill() == false) result--
-
+        if (!Field.isFill()) {//если result уменьшился - игра завершается
+            println("Места нет! Гамовер! Добро пожаловать отсюда!")
+            return
+        }
     } while (count == 0)//до выигрышной комбинации
-    if (result == 0) {//если result уменьшился - игра завершается
-        println("Места нет! Гамовер! Добро пожаловать отсюда!")
-        return
-    }
+
     println("Поздравляю, выиграли ${Field.checkWin()}")
 }
 
